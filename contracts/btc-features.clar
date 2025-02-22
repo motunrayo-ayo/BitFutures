@@ -194,3 +194,42 @@
     )
   )
 )
+
+;; Market Data Accessors
+
+;; Get market parameters
+(define-read-only (get-market (market-id uint))
+  (map-get? markets market-id)
+)
+
+;; Get user position details
+(define-read-only (get-user-prediction (market-id uint) (user principal))
+  (map-get? user-predictions {market-id: market-id, user: user})
+)
+
+;; Protocol Analytics
+
+;; Check contract STX balance
+(define-read-only (get-contract-balance)
+  (stx-get-balance (as-contract tx-sender))
+)
+
+;; Administrative Controls
+
+;; Update price oracle address
+(define-public (set-oracle-address (new-address principal))
+  (begin
+    (asserts! (is-eq tx-sender contract-owner) err-owner-only)
+    (asserts! (not (is-eq new-address (var-get oracle-address))) err-invalid-parameter)
+    (ok (var-set oracle-address new-address))
+  )
+)
+
+;; Configure minimum position size
+(define-public (set-minimum-stake (new-minimum uint))
+  (begin
+    (asserts! (is-eq tx-sender contract-owner) err-owner-only)
+    (asserts! (> new-minimum u0) err-invalid-parameter)
+    (ok (var-set minimum-stake new-minimum))
+  )
+)
